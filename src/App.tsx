@@ -396,7 +396,14 @@ export default function App() {
     : 'Friend';
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-indigo-50/30 to-slate-100 text-slate-800 flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden">
+      {/* Background Ambient Glow Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-40 -left-40 w-[28rem] h-[28rem] bg-indigo-500/15 rounded-full blur-3xl animate-ambient" />
+        <div className="absolute top-1/3 -right-40 w-[28rem] h-[28rem] bg-purple-500/15 rounded-full blur-3xl animate-ambient" style={{ animationDelay: '4s' }} />
+        <div className="absolute -bottom-40 left-1/3 w-[28rem] h-[28rem] bg-pink-500/15 rounded-full blur-3xl animate-ambient" style={{ animationDelay: '8s' }} />
+      </div>
+
       {/* Floating Reactions Container */}
       <div className="fixed bottom-12 right-6 z-40 pointer-events-none flex flex-col gap-2 items-end">
         <AnimatePresence>
@@ -407,7 +414,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0, scale: 1.2 }}
               exit={{ opacity: 0, y: -40, scale: 0.8 }}
               transition={{ duration: 0.4 }}
-              className="bg-white/90 backdrop-blur-md border border-slate-200 shadow-xl rounded-2xl px-3 py-1.5 flex items-center gap-1.5 text-sm font-bold text-slate-800"
+              className="glass-panel border border-slate-200/80 shadow-2xl rounded-2xl px-4 py-2 flex items-center gap-2 text-sm font-extrabold text-slate-800"
             >
               <span className="text-2xl">{rx.emoji}</span>
               <span className="text-xs text-indigo-600 font-extrabold">{rx.sender}</span>
