@@ -77,4 +77,6 @@ export interface MultiplayerMessage {
   isWon?: boolean;
   senderName?: string;
   emoji?: string;
+  currentTurnPlayerId?: string;
+  nextTurnPlayerId?: string;
 }

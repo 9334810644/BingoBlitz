@@ -42,6 +42,7 @@ export default function App() {
   const [gameMode, setGameMode] = useState<GameMode>('solo');
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [roomPlayers, setRoomPlayers] = useState<RoomPlayer[]>([]);
+  const [currentTurnPlayerId, setCurrentTurnPlayerId] = useState<string | null>(null);
   const [floatingReactions, setFloatingReactions] = useState<Array<{ id: string; emoji: string; sender: string }>>([]);
 
   // Modals
@@ -149,15 +150,22 @@ export default function App() {
         setRoomPlayers((prev) => {
           if (prev.some((p) => p.id === msg.player!.id)) return prev;
           const updated = [...prev, msg.player!];
-          // Host broadcasts updated room state
+          const activeTurn = currentTurnPlayerId || updated[0].id;
+          // Host broadcasts updated room state & current turn
           roomManager.broadcast({
             type: 'ROOM_STATE',
             players: updated,
+            currentTurnPlayerId: activeTurn,
           });
           return updated;
         });
       } else if (msg.type === 'ROOM_STATE' && msg.players) {
         setRoomPlayers(msg.players);
+        if (msg.currentTurnPlayerId) {
+          setCurrentTurnPlayerId(msg.currentTurnPlayerId);
+        } else if (msg.players.length > 0) {
+          setCurrentTurnPlayerId(msg.players[0].id);
+        }
       } else if (msg.type === 'NUMBER_CALLED' && typeof msg.number === 'number') {
         const num = msg.number;
         const nextState = msg.isMarked !== undefined ? msg.isMarked : true;
@@ -172,6 +180,10 @@ export default function App() {
           )
         );
 
+        if (msg.nextTurnPlayerId) {
+          setCurrentTurnPlayerId(msg.nextTurnPlayerId);
+        }
+
         if (nextState) {
           playMarkSound(soundSettings.soundEnabled);
         } else {
@@ -180,7 +192,7 @@ export default function App() {
 
         // Show live call toast notification
         const id = `rx-${Date.now()}-${Math.random()}`;
-        const text = `${msg.calledBy || 'Friend'} ${nextState ? 'tapped' : 'untapped'} #${num}`;
+        const text = `${msg.calledBy || 'Friend'} picked #${num}`;
         setFloatingReactions((prev) => [...prev, { id, emoji: '📌', sender: text }]);
         setTimeout(() => {
           setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
@@ -204,6 +216,9 @@ export default function App() {
         setGrid(generateBingoCard());
         setGameStatus('idle');
         setShowVictoryModal(false);
+        if (msg.currentTurnPlayerId) {
+          setCurrentTurnPlayerId(msg.currentTurnPlayerId);
+        }
       }
     });
 
@@ -212,9 +227,10 @@ export default function App() {
         setGameMode('solo');
         setRoomCode(null);
         setRoomPlayers([]);
+        setCurrentTurnPlayerId(null);
       }
     });
-  }, [soundSettings.soundEnabled]);
+  }, [soundSettings.soundEnabled, currentTurnPlayerId]);
 
   // Auto join room if URL contains ?room=XXXXXX
   useEffect(() => {
@@ -233,6 +249,7 @@ export default function App() {
 
     const hostPlayer = roomManager.getLocalPlayer()!;
     setRoomPlayers([hostPlayer]);
+    setCurrentTurnPlayerId(hostPlayer.id);
   };
 
   // Join Room Handler
@@ -250,6 +267,7 @@ export default function App() {
     setGameMode('solo');
     setRoomCode(null);
     setRoomPlayers([]);
+    setCurrentTurnPlayerId(null);
   };
 
   const handleSendReaction = (emoji: string) => {
@@ -275,6 +293,27 @@ export default function App() {
     const targetCell = grid[rowIndex][colIndex];
     if (targetCell.isFree) return;
 
+    const localPlayer = roomManager.getLocalPlayer();
+    const activeTurnId = currentTurnPlayerId || roomPlayers[0]?.id;
+
+    // In multiplayer mode, enforce strict turn order and prevent re-tapping already marked cells
+    if (gameMode === 'multiplayer') {
+      if (localPlayer && activeTurnId && activeTurnId !== localPlayer.id) {
+        const turnPlayer = roomPlayers.find((p) => p.id === activeTurnId);
+        const id = `rx-${Date.now()}-${Math.random()}`;
+        setFloatingReactions((prev) => [
+          ...prev,
+          { id, emoji: '⏳', sender: `Wait for ${turnPlayer?.name || 'opponent'}'s turn!` },
+        ]);
+        setTimeout(() => {
+          setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
+        }, 2500);
+        return;
+      }
+
+      if (targetCell.isMarked) return;
+    }
+
     const newMarkedState = !targetCell.isMarked;
 
     if (newMarkedState) {
@@ -294,14 +333,23 @@ export default function App() {
 
     setGrid(newGrid);
 
-    // Broadcast number tap to online room
+    // Calculate next turn player in round-robin order
+    let nextTurnId: string | undefined = undefined;
+    if (gameMode === 'multiplayer' && roomPlayers.length > 1 && localPlayer) {
+      const currentIdx = roomPlayers.findIndex((p) => p.id === localPlayer.id);
+      const nextIdx = currentIdx !== -1 ? (currentIdx + 1) % roomPlayers.length : 0;
+      nextTurnId = roomPlayers[nextIdx].id;
+      setCurrentTurnPlayerId(nextTurnId);
+    }
+
+    // Broadcast number tap to online room along with next turn player
     if (gameMode === 'multiplayer') {
-      const localPlayer = roomManager.getLocalPlayer();
       roomManager.sendMessage({
         type: 'NUMBER_CALLED',
         number: targetCell.number,
         isMarked: newMarkedState,
         calledBy: localPlayer ? localPlayer.name : 'A friend',
+        nextTurnPlayerId: nextTurnId,
       });
     }
 
@@ -317,8 +365,14 @@ export default function App() {
     setGameStatus('idle');
     setShowVictoryModal(false);
 
+    const firstPlayerId = roomPlayers[0]?.id;
+
     if (gameMode === 'multiplayer') {
-      roomManager.sendMessage({ type: 'RESTART_GAME' });
+      if (firstPlayerId) setCurrentTurnPlayerId(firstPlayerId);
+      roomManager.sendMessage({
+        type: 'RESTART_GAME',
+        currentTurnPlayerId: firstPlayerId,
+      });
     }
   };
 
@@ -330,6 +384,16 @@ export default function App() {
       bestStreak: 0,
     });
   };
+
+  const localPlayer = roomManager.getLocalPlayer();
+  const activeTurnId = currentTurnPlayerId || roomPlayers[0]?.id;
+  const isMyTurn = gameMode === 'solo' || (localPlayer ? activeTurnId === localPlayer.id : true);
+  const currentTurnPlayer = roomPlayers.find((p) => p.id === activeTurnId);
+  const currentTurnPlayerName = currentTurnPlayer
+    ? currentTurnPlayer.id === localPlayer?.id
+      ? 'You'
+      : currentTurnPlayer.name
+    : 'Friend';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden">
@@ -373,6 +437,7 @@ export default function App() {
             players={roomPlayers}
             localPlayerId={roomManager.getLocalPlayer()?.id || ''}
             isHost={roomManager.getIsHost()}
+            currentTurnPlayerId={activeTurnId}
             onLeaveRoom={handleLeaveRoom}
             onSendReaction={handleSendReaction}
           />
@@ -388,6 +453,9 @@ export default function App() {
             winningCellIds={winResult.winningCellIds}
             winningLines={winResult.winningLines}
             winningLineDetails={winResult.winningLineDetails}
+            gameMode={gameMode}
+            isMyTurn={isMyTurn}
+            currentTurnPlayerName={currentTurnPlayerName}
           />
         </div>
       </main>

@@ -7,6 +7,7 @@ interface RoomLobbyProps {
   players: RoomPlayer[];
   localPlayerId: string;
   isHost: boolean;
+  currentTurnPlayerId?: string | null;
   onLeaveRoom: () => void;
   onSendReaction: (emoji: string) => void;
 }
@@ -16,6 +17,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
   players,
   localPlayerId,
   isHost,
+  currentTurnPlayerId,
   onLeaveRoom,
   onSendReaction,
 }) => {
@@ -84,23 +86,30 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
 
       {/* Players Roster */}
       <div className="my-4 space-y-2">
-        <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider px-1">
-          Live Players
+        <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider px-1 flex items-center justify-between">
+          <span>Live Players</span>
+          <span className="text-[10px] text-indigo-600 font-bold lowercase">turn-based mode active</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {players.map((p) => {
             const isSelf = p.id === localPlayerId;
+            const isTurn = currentTurnPlayerId ? p.id === currentTurnPlayerId : p.isHost;
+
             return (
               <div
                 key={p.id}
                 className={`p-3 rounded-2xl border flex items-center justify-between transition-all ${
-                  isSelf
+                  isTurn
+                    ? 'bg-emerald-50/90 border-emerald-300 ring-2 ring-emerald-400 text-emerald-950 font-bold shadow-sm'
+                    : isSelf
                     ? 'bg-indigo-50/80 border-indigo-200 text-indigo-950 font-bold'
                     : 'bg-slate-50 border-slate-200 text-slate-800'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-slate-200 font-black text-xs text-slate-700 flex items-center justify-center">
+                  <div className={`w-7 h-7 rounded-full font-black text-xs flex items-center justify-center ${
+                    isTurn ? 'bg-emerald-600 text-white animate-bounce' : 'bg-slate-200 text-slate-700'
+                  }`}>
                     {p.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -112,11 +121,18 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
                   </div>
                 </div>
 
-                {p.isWon && (
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full border border-amber-300 animate-bounce">
-                    Winner!
-                  </span>
-                )}
+                <div className="flex items-center gap-1">
+                  {isTurn && (
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white px-2 py-0.5 rounded-full shadow-xs animate-pulse">
+                      Turn
+                    </span>
+                  )}
+                  {p.isWon && (
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full border border-amber-300 animate-bounce">
+                      Winner!
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Shuffle, Check, Sparkles } from 'lucide-react';
-import { Cell, WinningLineDetail } from '../types';
+import { Shuffle, Check, Sparkles, Hourglass, Target } from 'lucide-react';
+import { Cell, WinningLineDetail, GameMode } from '../types';
 import { BINGO_LETTERS, BINGO_LETTER_COLORS } from '../utils/bingo';
 import { motion } from 'motion/react';
 
@@ -12,6 +12,9 @@ interface BingoCardProps {
   winningCellIds: Set<string>;
   winningLines?: string[];
   winningLineDetails?: WinningLineDetail[];
+  gameMode?: GameMode;
+  isMyTurn?: boolean;
+  currentTurnPlayerName?: string;
 }
 
 export const BingoCard: React.FC<BingoCardProps> = ({
@@ -22,6 +25,9 @@ export const BingoCard: React.FC<BingoCardProps> = ({
   winningCellIds,
   winningLines = [],
   winningLineDetails = [],
+  gameMode = 'solo',
+  isMyTurn = true,
+  currentTurnPlayerName,
 }) => {
   const linesCount = winningLines.length;
   const isWon = linesCount >= 5;
@@ -60,6 +66,41 @@ export const BingoCard: React.FC<BingoCardProps> = ({
           <span>New Card</span>
         </button>
       </div>
+
+      {/* Multiplayer Turn Status Banner */}
+      {gameMode === 'multiplayer' && (
+        <div
+          className={`mb-3 py-2 px-3.5 rounded-xl border text-xs sm:text-sm font-extrabold flex items-center justify-between shadow-xs transition-all ${
+            isMyTurn
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-950 animate-pulse'
+              : 'bg-amber-50 border-amber-200 text-amber-950'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {isMyTurn ? (
+              <Target className="w-4 h-4 text-emerald-600 animate-spin" />
+            ) : (
+              <Hourglass className="w-4 h-4 text-amber-600 animate-pulse" />
+            )}
+            <span>
+              {isMyTurn ? (
+                <span className="text-emerald-700 font-black">YOUR TURN! Pick a number on your board</span>
+              ) : (
+                <span>
+                  Waiting for <strong className="text-amber-800 font-black">{currentTurnPlayerName || 'Opponent'}</strong> to pick a number...
+                </span>
+              )}
+            </span>
+          </div>
+          <span
+            className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+              isMyTurn ? 'bg-emerald-600 text-white' : 'bg-amber-200 text-amber-900'
+            }`}
+          >
+            {isMyTurn ? 'Active' : 'Locked'}
+          </span>
+        </div>
+      )}
 
       {/* 5x5 Bingo Grid Container */}
       <div className="bg-slate-100/80 p-2 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-inner relative">
@@ -114,13 +155,19 @@ export const BingoCard: React.FC<BingoCardProps> = ({
             row.map((cell, colIndex) => {
               const isWinning = winningCellIds.has(cell.id);
               const letterColors = BINGO_LETTER_COLORS[cell.letter];
+              const isLocked = gameMode === 'multiplayer' && !isMyTurn;
 
               return (
                 <motion.button
                   key={cell.id}
-                  whileTap={{ scale: 0.92 }}
+                  whileTap={isLocked ? undefined : { scale: 0.92 }}
                   onClick={() => onToggleCell(rowIndex, colIndex)}
-                  className={`relative aspect-square rounded-lg sm:rounded-xl font-extrabold text-base sm:text-2xl flex flex-col items-center justify-center transition-all select-none overflow-hidden cursor-pointer ${
+                  disabled={isLocked}
+                  className={`relative aspect-square rounded-lg sm:rounded-xl font-extrabold text-base sm:text-2xl flex flex-col items-center justify-center transition-all select-none overflow-hidden ${
+                    isLocked
+                      ? 'cursor-not-allowed opacity-80'
+                      : 'cursor-pointer'
+                  } ${
                     isWinning
                       ? 'ring-2 sm:ring-4 ring-amber-400 ring-offset-1 sm:ring-offset-2 ring-offset-slate-100 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white font-black shadow-lg z-10'
                       : cell.isMarked
