@@ -1,0 +1,6 @@
+{
+  "name": "BingoBlitz",
+  "description": "A colorful, interactive, and responsive 5x5 BingoBlitz game with auto-calling, winning pattern detection, voice calls, and celebratory animations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
