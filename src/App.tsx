@@ -197,13 +197,14 @@ export default function App() {
           playUnmarkSound(soundSettings.soundEnabled);
         }
 
-        // Show live call toast notification
+        /* Number calls are synchronized silently; only intentional reactions create popups.
         const id = `rx-${Date.now()}-${Math.random()}`;
         const text = `${msg.calledBy || 'Friend'} picked #${num}`;
         setFloatingReactions((prev) => [...prev, { id, emoji: '📌', sender: text }]);
         setTimeout(() => {
           setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
         }, 3000);
+        */
       } else if (msg.type === 'PROGRESS_UPDATE' && msg.playerId) {
         setRoomPlayers((prev) =>
           prev.map((p) =>
@@ -234,15 +235,6 @@ export default function App() {
         setTimeout(() => {
           setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
         }, 3000);
-      } else if (msg.type === 'RESTART_GAME') {
-        setGrid(generateBingoCard());
-        setGameStatus('idle');
-        setShowVictoryModal(false);
-        setVictoryResult(null);
-        setWinnerName('You');
-        if (msg.currentTurnPlayerId) {
-          setCurrentTurnPlayerId(msg.currentTurnPlayerId);
-        }
       }
     });
 
@@ -388,15 +380,6 @@ export default function App() {
     setVictoryResult(null);
     setWinnerName('You');
 
-    const firstPlayerId = roomPlayers[0]?.id;
-
-    if (gameMode === 'multiplayer') {
-      if (firstPlayerId) setCurrentTurnPlayerId(firstPlayerId);
-      roomManager.sendMessage({
-        type: 'RESTART_GAME',
-        currentTurnPlayerId: firstPlayerId,
-      });
-    }
   };
 
   const handleResetStats = () => {
