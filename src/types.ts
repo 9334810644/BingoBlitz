@@ -75,6 +75,8 @@ export interface MultiplayerMessage {
   playerId?: string;
   linesCount?: number;
   isWon?: boolean;
+  winnerName?: string;
+  winningLines?: string[];
   senderName?: string;
   emoji?: string;
   currentTurnPlayerId?: string;

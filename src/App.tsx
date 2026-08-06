@@ -16,6 +16,7 @@ import {
   SoundSettings,
   RoomPlayer,
   MultiplayerMessage,
+  WinResult,
 } from './types';
 import {
   generateBingoCard,
@@ -48,6 +49,8 @@ export default function App() {
   // Modals
   const [showRoomModal, setShowRoomModal] = useState<boolean>(false);
   const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false);
+  const [victoryResult, setVictoryResult] = useState<WinResult | null>(null);
+  const [winnerName, setWinnerName] = useState('You');
   const [showHowToPlay, setShowHowToPlay] = useState<boolean>(false);
   const [showStatsModal, setShowStatsModal] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
@@ -108,6 +111,8 @@ export default function App() {
         playerId: localPlayer.id,
         linesCount: winResult.winningLines.length,
         isWon: winResult.isWin,
+        winnerName: localPlayer.name,
+        winningLines: winResult.winningLines,
       };
       roomManager.sendMessage(msg);
 
@@ -127,6 +132,8 @@ export default function App() {
     if (winResult.isWin && gameStatus !== 'won') {
       setGameStatus('won');
       setShowVictoryModal(true);
+      setVictoryResult(winResult);
+      setWinnerName(gameMode === 'multiplayer' ? roomManager.getLocalPlayer()?.name || 'You' : 'You');
       playBingoWinSound(soundSettings.soundEnabled);
 
       setStats((prev) => {
@@ -205,6 +212,21 @@ export default function App() {
               : p
           )
         );
+
+        // A win belongs to the whole room: show the same result on every client
+        // and lock the finished game for both players.
+        if (msg.isWon && gameStatus !== 'won') {
+          const remoteWinResult = checkWinPattern(grid, gamePattern);
+          setGameStatus('won');
+          setShowVictoryModal(true);
+          setVictoryResult({
+            ...remoteWinResult,
+            isWin: true,
+            winningLines: msg.winningLines?.length ? msg.winningLines : remoteWinResult.winningLines,
+          });
+          setWinnerName(msg.winnerName || roomPlayers.find((p) => p.id === msg.playerId)?.name || 'Opponent');
+          playBingoWinSound(soundSettings.soundEnabled);
+        }
       } else if (msg.type === 'REACTION' && msg.emoji) {
         const id = `rx-${Date.now()}-${Math.random()}`;
         setFloatingReactions((prev) => [...prev, { id, emoji: msg.emoji!, sender: msg.senderName || 'Friend' }]);
@@ -216,6 +238,8 @@ export default function App() {
         setGrid(generateBingoCard());
         setGameStatus('idle');
         setShowVictoryModal(false);
+        setVictoryResult(null);
+        setWinnerName('You');
         if (msg.currentTurnPlayerId) {
           setCurrentTurnPlayerId(msg.currentTurnPlayerId);
         }
@@ -290,6 +314,8 @@ export default function App() {
 
   // Toggle cell mark state manually & broadcast to online room
   const handleToggleCell = (rowIndex: number, colIndex: number) => {
+    if (gameStatus === 'won') return;
+
     const targetCell = grid[rowIndex][colIndex];
     if (targetCell.isFree) return;
 
@@ -353,17 +379,14 @@ export default function App() {
       });
     }
 
-    // Revert game status if unmarking drops below 5 lines after won
-    const newWinCheck = checkWinPattern(newGrid, gamePattern);
-    if (!newWinCheck.isWin && gameStatus === 'won') {
-      setGameStatus('idle');
-    }
   };
 
   const handleNewCard = () => {
     setGrid(generateBingoCard());
     setGameStatus('idle');
     setShowVictoryModal(false);
+    setVictoryResult(null);
+    setWinnerName('You');
 
     const firstPlayerId = roomPlayers[0]?.id;
 
@@ -456,7 +479,7 @@ export default function App() {
             grid={grid}
             onToggleCell={handleToggleCell}
             onNewCard={handleNewCard}
-            isGameActive={false}
+            isGameActive={gameStatus === 'won'}
             winningCellIds={winResult.winningCellIds}
             winningLines={winResult.winningLines}
             winningLineDetails={winResult.winningLineDetails}
@@ -511,8 +534,9 @@ export default function App() {
       {/* Victory Celebration Modal */}
       <VictoryModal
         isOpen={showVictoryModal}
-        winResult={winResult}
+        winResult={victoryResult}
         totalCalls={0}
+        winnerName={winnerName}
         onPlayAgain={handleNewCard}
         onClose={() => setShowVictoryModal(false)}
       />

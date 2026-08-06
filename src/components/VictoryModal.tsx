@@ -8,6 +8,7 @@ interface VictoryModalProps {
   isOpen: boolean;
   winResult: WinResult | null;
   totalCalls: number;
+  winnerName?: string;
   onPlayAgain: () => void;
   onClose: () => void;
 }
@@ -16,6 +17,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   isOpen,
   winResult,
   totalCalls,
+  winnerName = 'You',
   onPlayAgain,
   onClose,
 }) => {
@@ -94,7 +96,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           </motion.h1>
 
           <p className="text-slate-600 font-extrabold text-sm sm:text-base mb-6">
-            Congratulations! You completed 5 lines and spelled <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-black font-display text-lg">B-I-N-G-O</span>!
+            <span className="text-indigo-700 font-black">{winnerName}</span> completed 5 lines and spelled <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-black font-display text-lg">B-I-N-G-O</span>!
           </p>
 
           {/* Winning lines breakdown */}
