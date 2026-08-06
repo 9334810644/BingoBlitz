@@ -26,37 +26,31 @@ export function getLetterForNumber(num: number): BingoLetter {
   return 'O';
 }
 
-function getRandomNumbersInRange(min: number, max: number, count: number): number[] {
-  const nums: number[] = [];
-  for (let i = min; i <= max; i++) {
-    nums.push(i);
-  }
-  // Fisher-Yates shuffle
-  for (let i = nums.length - 1; i > 0; i--) {
+function shuffle<T>(items: T[]): T[] {
+  const shuffled = [...items];
+
+  // Fisher-Yates shuffle: every new card gets a fresh random permutation.
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [nums[i], nums[j]] = [nums[j], nums[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return nums.slice(0, count);
+
+  return shuffled;
 }
 
 /**
- * Generates a standard 5x5 BingoBlitz Card where each column has numbers from its respective range (1-5 for B, 6-10 for I, etc.) shuffled vertically.
+ * Generates a 5x5 BingoBlitz card with every number from 1 to 25 placed once
+ * and shuffled across all 25 cells.
  */
 export function generateBingoCard(): Cell[][] {
-  const columnNumbers: Record<BingoLetter, number[]> = {
-    B: getRandomNumbersInRange(1, 5, 5),
-    I: getRandomNumbersInRange(6, 10, 5),
-    N: getRandomNumbersInRange(11, 15, 5),
-    G: getRandomNumbersInRange(16, 20, 5),
-    O: getRandomNumbersInRange(21, 25, 5),
-  };
+  const numbers = shuffle(Array.from({ length: 25 }, (_, index) => index + 1));
 
   const grid: Cell[][] = Array.from({ length: 5 }, () => Array(5));
 
   for (let rowIndex = 0; rowIndex < 5; rowIndex++) {
     for (let colIndex = 0; colIndex < 5; colIndex++) {
       const letter = BINGO_LETTERS[colIndex];
-      const number = columnNumbers[letter][rowIndex];
+      const number = numbers[rowIndex * 5 + colIndex];
 
       grid[rowIndex][colIndex] = {
         id: `cell-r${rowIndex}-c${colIndex}`,
@@ -133,4 +127,3 @@ export function checkWinPattern(grid: Cell[][], _pattern: GamePattern = 'line'):
     winningLineDetails,
   };
 }
-
