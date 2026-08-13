@@ -33,7 +33,7 @@ export const BingoCard: React.FC<BingoCardProps> = ({
   const isWon = linesCount >= 5;
 
   return (
-    <div className="glass-panel rounded-3xl shadow-2xl shadow-slate-300/60 p-4 sm:p-7 border border-white/80 flex flex-col justify-between max-w-lg mx-auto w-full transition-all relative z-10">
+    <div className="glass-panel rounded-3xl shadow-2xl shadow-slate-300/60 p-4 sm:p-7 border border-white/80 flex flex-col justify-between max-w-lg mx-auto w-full transition-all relative z-10 dark:shadow-slate-950/40 dark:border-slate-800/80 dark:bg-slate-900/80">
       {/* Card Top Header */}
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-3">
@@ -43,10 +43,10 @@ export const BingoCard: React.FC<BingoCardProps> = ({
             }`}
           />
           <div>
-            <h2 className="font-black text-slate-900 text-lg sm:text-2xl tracking-tight leading-none font-display">
+            <h2 className="font-black text-slate-900 text-lg sm:text-2xl tracking-tight leading-none font-display dark:text-slate-100">
               BingoBlitz Card
             </h2>
-            <p className="text-xs font-bold text-slate-500 mt-1">
+            <p className="text-xs font-bold text-slate-500 mt-1 dark:text-slate-400">
               {linesCount === 0
                 ? 'Complete 5 lines to spell B-I-N-G-O'
                 : `${linesCount} of 5 lines cut (${BINGO_LETTERS.slice(0, linesCount).join('-') || ''})`}
@@ -72,8 +72,8 @@ export const BingoCard: React.FC<BingoCardProps> = ({
         <div
           className={`mb-4 py-2.5 px-4 rounded-2xl border text-xs sm:text-sm font-extrabold flex items-center justify-between shadow-xs transition-all ${
             isMyTurn
-              ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-300/80 text-emerald-950 animate-pulse'
-              : 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-300/80 text-amber-950'
+              ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-300/80 text-emerald-950 animate-pulse dark:text-emerald-200 dark:border-emerald-700/70'
+              : 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-300/80 text-amber-950 dark:text-amber-200 dark:border-amber-700/70'
           }`}
         >
           <div className="flex items-center gap-2.5">
@@ -84,10 +84,10 @@ export const BingoCard: React.FC<BingoCardProps> = ({
             )}
             <span>
               {isMyTurn ? (
-                <span className="text-emerald-800 font-black">YOUR TURN! Pick a number on your board</span>
+                <span className="text-emerald-800 font-black dark:text-emerald-200">YOUR TURN! Pick a number on your board</span>
               ) : (
                 <span>
-                  Waiting for <strong className="text-amber-900 font-black">{currentTurnPlayerName || 'Opponent'}</strong> to pick a number...
+                  Waiting for <strong className="text-amber-900 font-black dark:text-amber-200">{currentTurnPlayerName || 'Opponent'}</strong> to pick a number...
                 </span>
               )}
             </span>
@@ -103,7 +103,7 @@ export const BingoCard: React.FC<BingoCardProps> = ({
       )}
 
       {/* 5x5 Bingo Grid Container */}
-      <div className="bg-slate-900/5 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-inner relative">
+      <div className="bg-slate-900/5 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-inner relative dark:bg-slate-800/40 dark:border-slate-700/80">
         {/* Column Headers B-I-N-G-O with Strikethrough Cut Effect */}
         <div className="grid grid-cols-5 gap-1.5 sm:gap-3 mb-2.5 sm:mb-3.5 text-center">
           {BINGO_LETTERS.map((letter, idx) => {
@@ -174,10 +174,10 @@ export const BingoCard: React.FC<BingoCardProps> = ({
                       : 'cursor-pointer hover:shadow-md active:scale-95'
                   } ${
                     isWinning
-                      ? 'ring-2 sm:ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-100 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white font-black shadow-xl z-10 animate-shimmer'
+                      ? 'ring-2 sm:ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-100 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white font-black shadow-xl z-10 animate-shimmer dark:ring-offset-slate-900'
                       : cell.isMarked
-                      ? 'bg-white text-indigo-950 border-2 border-indigo-500/90 shadow-inner'
-                      : 'bg-white/95 hover:bg-white text-slate-800 border border-slate-200/90 hover:border-indigo-300'
+                      ? 'bg-white text-indigo-950 border-2 border-indigo-500/90 shadow-inner dark:bg-slate-200 dark:text-indigo-950'
+                      : 'bg-white/95 hover:bg-white text-slate-800 border border-slate-200/90 hover:border-indigo-300 dark:bg-slate-800/80 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-700/80'
                   }`}
                 >
                   <span className={`relative z-10 transition-colors ${cell.isMarked && !isWinning ? 'text-indigo-950 font-black' : ''}`}>
@@ -250,7 +250,7 @@ export const BingoCard: React.FC<BingoCardProps> = ({
       </div>
 
       {/* Footer Tip */}
-      <div className="mt-3 sm:mt-4 text-center text-[11px] sm:text-xs font-semibold text-slate-500 flex items-center justify-center gap-1.5">
+      <div className="mt-3 sm:mt-4 text-center text-[11px] sm:text-xs font-semibold text-slate-500 flex items-center justify-center gap-1.5 dark:text-slate-400">
         <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
         <span>Tap numbers to mark or unmark them on your card</span>
       </div>

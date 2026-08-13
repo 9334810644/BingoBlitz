@@ -32,6 +32,9 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const SOUND_STORAGE_KEY = 'bingoblitz_sound_v4';
 const STATS_STORAGE_KEY = 'bingoblitz_stats_v4';
+const THEME_STORAGE_KEY = 'bingoblitz_theme';
+
+type ThemeMode = 'light' | 'dark';
 
 export default function App() {
   // Card Grid State
@@ -54,6 +57,20 @@ export default function App() {
   const [showHowToPlay, setShowHowToPlay] = useState<boolean>(false);
   const [showStatsModal, setShowStatsModal] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
+
+  // Theme Settings
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    if (typeof window === 'undefined') return 'light';
+
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === 'light' || saved === 'dark') return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } catch (e) {
+      console.warn('Load theme failed', e);
+      return 'light';
+    }
+  });
 
   // Sound Settings
   const [soundSettings, setSoundSettings] = useState<SoundSettings>(() => {
@@ -98,6 +115,17 @@ export default function App() {
       console.warn('Save stats failed', e);
     }
   }, [stats]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.style.colorScheme = theme;
+
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (e) {
+      console.warn('Save theme failed', e);
+    }
+  }, [theme]);
 
   // Win Detection
   const winResult = checkWinPattern(grid, gamePattern);
@@ -402,7 +430,7 @@ export default function App() {
     : 'Friend';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-indigo-50/30 to-slate-100 text-slate-800 flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-indigo-50/30 to-slate-100 text-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden transition-colors duration-300">
       {/* Background Ambient Glow Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-[28rem] h-[28rem] bg-indigo-500/15 rounded-full blur-3xl animate-ambient" />
@@ -433,6 +461,8 @@ export default function App() {
       <Navbar
         soundSettings={soundSettings}
         setSoundSettings={setSoundSettings}
+        theme={theme}
+        toggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
         gameMode={gameMode}
         roomCode={roomCode}
         onOpenRoomModal={() => setShowRoomModal(true)}
@@ -474,31 +504,31 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200/80 bg-white py-4 text-center text-xs text-slate-500 mt-auto">
+      <footer className="border-t border-slate-200/80 bg-white/80 py-4 text-center text-xs text-slate-500 mt-auto dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-400 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>BingoBlitz &bull; Online Synchronized 5x5 Bingo Game</span>
-          <div className="flex gap-4 text-slate-600 font-medium">
+          <div className="flex gap-4 text-slate-600 dark:text-slate-300 font-medium">
             <button
               onClick={() => setShowRoomModal(true)}
-              className="hover:text-indigo-600 transition-colors cursor-pointer font-bold text-indigo-600"
+              className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer font-bold text-indigo-600"
             >
               Play Online
             </button>
             <button
               onClick={() => setShowHowToPlay(true)}
-              className="hover:text-indigo-600 transition-colors cursor-pointer"
+              className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
             >
               Rules
             </button>
             <button
               onClick={() => setShowStatsModal(true)}
-              className="hover:text-indigo-600 transition-colors cursor-pointer"
+              className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
             >
               Stats
             </button>
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="hover:text-indigo-600 transition-colors cursor-pointer"
+              className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
             >
               Settings
             </button>
@@ -544,6 +574,8 @@ export default function App() {
         onClose={() => setShowSettingsModal(false)}
         soundSettings={soundSettings}
         setSoundSettings={setSoundSettings}
+        theme={theme}
+        toggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
       />
     </div>
   );

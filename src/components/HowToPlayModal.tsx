@@ -11,23 +11,23 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 text-slate-800 shadow-2xl relative">
+      <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 text-slate-800 shadow-2xl relative dark:bg-slate-900 dark:border-slate-800 dark:text-slate-100">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
             <img src="/logo.jpg" alt="Logo" className="w-6 h-6 rounded-lg object-cover border border-slate-200" />
-            <h2 className="font-bold text-xl text-slate-900">How to Play BingoBlitz</h2>
+            <h2 className="font-bold text-xl text-slate-900 dark:text-slate-100">How to Play BingoBlitz</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:hover:text-slate-100"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="space-y-5 py-4 text-sm text-slate-600">
+        <div className="space-y-5 py-4 text-sm text-slate-600 dark:text-slate-300">
           {/* Section 1: Objective */}
           <div>
             <h3 className="font-bold text-base text-slate-900 mb-1 flex items-center gap-2">
@@ -41,7 +41,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
 
           {/* Section 2: Card Layout */}
           <div>
-            <h3 className="font-bold text-base text-slate-900 mb-2 flex items-center gap-2">
+            <h3 className="font-bold text-base text-slate-900 mb-2 flex items-center gap-2 dark:text-slate-100">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               2. Shuffled Card Layout (1–25)
             </h3>
@@ -58,7 +58,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
             </h3>
             <ul className="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">
               <li>Tap numbers on your card to mark or unmark them as called.</li>
-              <li>Click <strong className="text-slate-900">New Card</strong> anytime to generate a fresh shuffled card layout.</li>
+              <li>Click <strong className="text-slate-900 dark:text-slate-100">New Card</strong> anytime to generate a fresh shuffled card layout.</li>
             </ul>
           </div>
 
@@ -69,14 +69,14 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
               4. Winning Pattern (B-I-N-G-O)
             </h3>
             <ul className="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">
-              <li>To win, you must complete <strong className="text-indigo-600 font-bold">5 total lines</strong> (any combination of horizontal rows, vertical columns, or diagonal lines).</li>
-              <li>Each completed line lights up a letter in <strong className="text-indigo-600 font-black">B - I - N - G - O</strong>!</li>
+              <li>To win, you must complete <strong className="text-indigo-600 font-bold dark:text-indigo-400">5 total lines</strong> (any combination of horizontal rows, vertical columns, or diagonal lines).</li>
+              <li>Each completed line lights up a letter in <strong className="text-indigo-600 font-black dark:text-indigo-400">B - I - N - G - O</strong>!</li>
             </ul>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="pt-3 border-t border-slate-100 text-center">
+        <div className="pt-3 border-t border-slate-100 text-center dark:border-slate-800">
           <button
             onClick={onClose}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-200"
